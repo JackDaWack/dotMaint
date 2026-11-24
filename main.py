@@ -68,6 +68,47 @@ class MaintenanceTicket(BaseModel):
         else:
             raise ValueError("Invalid status value")
 
+tickets_db = [] #Mock database to store tickets
+next_ticket_id = 1
+
+@app.post("/tickets")
+async def create_ticket(ticket: MaintenanceTicket):
+    try:
+        global next_ticket_id
+        new_ticket = MaintenanceTicket(
+            ticket_id=next_ticket_id, 
+            description=ticket.description, 
+            issue=ticket.issue, 
+            priority=ticket.priority, 
+            status=ticket.status
+            )
+        next_ticket_id += 1
+        tickets_db.append(new_ticket)
+        return new_ticket
+    except Exception as e:
+        print(f"Error creating ticket: {e}")
+        return None
+
+@app.get("/tickets")
+async def get_all_tickets():
+    try:
+        return tickets_db
+    except Exception as e:
+        print(f"Error fetching tickets: {e}")
+        return None
+
+@app.get("/tickets/{ticket_id}")
+async def get_ticket(ticket_id: int):
+    try:
+        for ticket in tickets_db:
+            if ticket.get_ticket_ID() == ticket_id:
+                return ticket
+        return None
+    except Exception as e:
+        print(f"Error fetching ticket: {e}")
+        return None
+
+
 @app.get("/")
 async def read_root():
     try:
