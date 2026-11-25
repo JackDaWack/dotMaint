@@ -13,18 +13,11 @@ class Status:
     CLOSED = "closed"
 
 class MaintenanceTicket(BaseModel):
-    ticket_id: int
+    ticket_id: int = 0
     description: str
     issue: str
     priority: str = Priority.LOW
     status: str = Status.OPEN
-
-    def __init__(self, ticket_id: int, description: str, issue: str, priority: str = Priority.LOW, status: str = Status.OPEN):
-        self.ticket_id = ticket_id
-        self.description = description
-        self.issue = issue
-        self.priority = priority
-        self.status = status
 
     def get_ticket_info(self):
         return {
@@ -108,6 +101,30 @@ async def get_ticket(ticket_id: int):
         print(f"Error fetching ticket: {e}")
         return None
 
+@app.put("/tickets/{ticket_id}")
+async def update_ticket(ticket_id: int, updated_ticket: MaintenanceTicket):
+    try:
+        for i, ticket in enumerate(tickets_db):
+            if ticket.get_ticket_ID() == ticket_id:
+                tickets_db[i] = updated_ticket
+                return updated_ticket
+        return None
+    except Exception as e:
+        print(f"Error updating ticket: {e}")
+        return None
+
+@app.delete("/tickets/{ticket_id}")
+async def delete_ticket(ticket_id: int):
+    try:
+        for i, ticket in enumerate(tickets_db):
+            if ticket.get_ticket_ID() == ticket_id:
+                if ticket.get_status() == Status.CLOSED:
+                    del tickets_db[i]
+                    return True
+        return False
+    except Exception as e:
+        print(f"Error deleting ticket: {e}")
+        return False
 
 @app.get("/")
 async def read_root():
