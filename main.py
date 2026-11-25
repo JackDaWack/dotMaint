@@ -1,67 +1,10 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from models import MaintenanceTicket, Priority, Status
+import database
 
 app = FastAPI()
+db = database.Tickets()
 
-class Priority:
-    LOW = "low"
-    HIGH = "high"
-
-class Status:
-    OPEN = "open"
-    IN_PROGRESS = "in_progress"
-    CLOSED = "closed"
-
-class MaintenanceTicket(BaseModel):
-    ticket_id: int = 0
-    description: str
-    issue: str
-    priority: str = Priority.LOW
-    status: str = Status.OPEN
-
-    def get_ticket_info(self):
-        return {
-            "ticket_id": self.ticket_id,
-            "description": self.description,
-            "issue": self.issue,
-            "priority": self.priority,
-            "status": self.status
-        }
-
-    def get_ticket_ID(self):
-        return self.ticket_id
-
-    def get_description(self):
-        return self.description
-
-    def get_issue(self):
-        return self.issue
-
-    def get_priority(self):
-        return self.priority
-
-    def get_status(self):
-        return self.status
-
-    def update_description(self, new_description: str):
-        self.description = new_description
-
-    def update_issue(self, new_issue: str):
-        self.issue = new_issue
-
-    def update_priority(self, new_priority: str):
-        if new_priority in (Priority.LOW, Priority.HIGH):
-            self.priority = new_priority
-        else:
-            raise ValueError("Invalid priority value")
-
-    def update_status(self, new_status: str):
-        if new_status in (Status.OPEN, Status.IN_PROGRESS, Status.CLOSED):
-            self.status = new_status
-        else:
-            raise ValueError("Invalid status value")
-
-tickets_db = [] #Mock database to store tickets
 next_ticket_id = 1
 
 @app.post("/tickets")
@@ -76,7 +19,7 @@ async def create_ticket(ticket: MaintenanceTicket):
             status=ticket.status
             )
         next_ticket_id += 1
-        tickets_db.append(new_ticket)
+        db.insert_ticket(new_ticket)
         return new_ticket
     except Exception as e:
         print(f"Error creating ticket: {e}")
@@ -85,7 +28,7 @@ async def create_ticket(ticket: MaintenanceTicket):
 @app.get("/tickets")
 async def get_all_tickets():
     try:
-        return tickets_db
+        return db.get_all_tickets()
     except Exception as e:
         print(f"Error fetching tickets: {e}")
         return None
@@ -93,10 +36,7 @@ async def get_all_tickets():
 @app.get("/tickets/{ticket_id}")
 async def get_ticket(ticket_id: int):
     try:
-        for ticket in tickets_db:
-            if ticket.get_ticket_ID() == ticket_id:
-                return ticket
-        return None
+        return db.get_ticket_by_id(ticket_id)
     except Exception as e:
         print(f"Error fetching ticket: {e}")
         return None
@@ -104,10 +44,9 @@ async def get_ticket(ticket_id: int):
 @app.put("/tickets/{ticket_id}")
 async def update_ticket(ticket_id: int, updated_ticket: MaintenanceTicket):
     try:
-        for i, ticket in enumerate(tickets_db):
-            if ticket.get_ticket_ID() == ticket_id:
-                tickets_db[i] = updated_ticket
-                return updated_ticket
+        return db.update_ticket(ticket_id, updated_ticket)
+    except Exception as e:
+        print(f"Error updating ticket: {e}")
         return None
     except Exception as e:
         print(f"Error updating ticket: {e}")
@@ -116,11 +55,9 @@ async def update_ticket(ticket_id: int, updated_ticket: MaintenanceTicket):
 @app.delete("/tickets/{ticket_id}")
 async def delete_ticket(ticket_id: int):
     try:
-        for i, ticket in enumerate(tickets_db):
-            if ticket.get_ticket_ID() == ticket_id:
-                if ticket.get_status() == Status.CLOSED:
-                    del tickets_db[i]
-                    return True
+        return db.delete_ticket(ticket_id)
+    except Exception as e:
+        print(f"Error deleting ticket: {e}")
         return False
     except Exception as e:
         print(f"Error deleting ticket: {e}")
