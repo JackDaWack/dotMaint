@@ -6,7 +6,7 @@ class Priority:
 
 class Status:
     OPEN = "open"
-    IN_PROGRESS = "in_progress"
+    IN_PROGRESS = "in progress"
     CLOSED = "closed"
 
 class MaintenanceTicket(BaseModel):

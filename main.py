@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from models import MaintenanceTicket, Priority, Status
-import database
+import sqlite3
+import database as db
 
 app = FastAPI()
-db = database.Tickets()
+db.initialize_database()
+
 
 next_ticket_id = 1
 
