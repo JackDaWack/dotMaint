@@ -29,7 +29,7 @@ def get_ticket_by_id(ticket_id: int):
     row = c.fetchone()
     conn.close()
     if row:
-        return models.MaintenanceTicket(ticket_id=row[0], description=row[1], issue=row[2], priority=models.Priority(row[3]), status=models.Status(row[4]))
+        return models.MaintenanceTicket(ticket_id=row[0], description=row[1], issue=row[2], priority=row[3], status=row[4])
     return None
 
 def get_all_tickets():
@@ -40,7 +40,7 @@ def get_all_tickets():
     conn.close()
     tickets = []
     for row in rows:
-        tickets.append(models.MaintenanceTicket(ticket_id=row[0], description=row[1], issue=row[2], priority=models.Priority(row[3]), status=models.Status(row[4])))
+        tickets.append(models.MaintenanceTicket(ticket_id=row[0], description=row[1], issue=row[2], priority=row[3], status=row[4]))
     return tickets
 
 def update_ticket(ticket_id: int, updated_ticket: models.MaintenanceTicket):
@@ -49,7 +49,7 @@ def update_ticket(ticket_id: int, updated_ticket: models.MaintenanceTicket):
     c.execute('''UPDATE tickets 
                  SET description=?, issue=?, priority=?, status=? 
                  WHERE ticket_id=?''', 
-                 (updated_ticket.description, updated_ticket.issue, updated_ticket.priority.value, updated_ticket.status.value, ticket_id))
+                 (updated_ticket.description, updated_ticket.issue, updated_ticket.priority, updated_ticket.status, ticket_id))
     conn.commit()
     conn.close()
 
